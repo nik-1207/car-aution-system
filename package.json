@@ -1,0 +1,38 @@
+{
+  "name": "node-lib",
+  "version": "1.0.0",
+  "description": "A NodeJS template library",
+  "repository": "https://github.com/manufac-analytics/node-lib.git",
+  "license": "UNLICENSED",
+  "main": "dist/tsc/index.js",
+  "scripts": {
+    "clean": "yarn refresh && shx rm -rf node_modules",
+    "compile": "tsc",
+    "lint": "eslint --fix --cache",
+    "prepare": "husky",
+    "pretty": "prettier --cache --write . && sort-package-json",
+    "refresh": "shx rm -rf dist coverage .eslintcache ./node_modules/.cache/prettier/.prettier-cache",
+    "start": "tsc-watch --onSuccess 'node .'",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@types/mongoose": "^5.11.96",
+    "mongoose": "^8.19.2"
+  },
+  "devDependencies": {
+    "@manufac/eslint-config": "^5.3.3",
+    "@manufac/prettier-config": "^1.7.0",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.9.2",
+    "eslint": "^9.38.0",
+    "husky": "^9.1.7",
+    "jest": "^30.2.0",
+    "prettier": "^3.6.2",
+    "shx": "^0.4.0",
+    "sort-package-json": "^3.4.0",
+    "ts-jest": "^29.4.5",
+    "ts-node": "^10.9.2",
+    "tsc-watch": "^7.2.0",
+    "typescript": "^5.9.3"
+  }
+}
