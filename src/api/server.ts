@@ -1,140 +1,131 @@
-import express from "express";
+import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import { DatabaseConnection } from "../database";
 import auctionRoutes from "./routes/auction";
+import { CarAuctionSystem } from "../index";
+import { AuctionController } from "./controllers/AuctionController";
 
-export class AuctionServer {
-  private app: express.Application;
+export class ApiServer {
+  private app: Application;
   private port: number;
-  private db: DatabaseConnection;
+  private auctionSystem: CarAuctionSystem;
 
   constructor(port: number = 3000) {
     this.app = express();
     this.port = port;
-    this.db = DatabaseConnection.getInstance();
-    
-    this.initializeMiddlewares();
+    this.auctionSystem = new CarAuctionSystem();
+    this.initializeMiddleware();
     this.initializeRoutes();
     this.initializeErrorHandling();
   }
 
-  private initializeMiddlewares(): void {
+  private initializeMiddleware(): void {
     // Security middleware
     this.app.use(helmet());
-    
+
     // CORS middleware
-    this.app.use(cors({
-      origin: process.env.ALLOWED_ORIGINS?.split(",") || ["http://localhost:3000", "http://localhost:3001"],
-      credentials: true
-    }));
-    
+    this.app.use(
+      cors({
+        origin: process.env.CORS_ORIGIN || "*",
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+      }),
+    );
+
     // Logging middleware
     this.app.use(morgan("combined"));
-    
+
     // Body parsing middleware
     this.app.use(express.json({ limit: "10mb" }));
-    this.app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+    this.app.use(express.urlencoded({ extended: true }));
   }
 
   private initializeRoutes(): void {
     // Health check endpoint
-    this.app.get("/health", (request, response) => {
+    this.app.get("/health", (request: Request, response: Response) => {
       response.status(200).json({
         success: true,
         message: "Car Auction API is running",
         timestamp: new Date().toISOString(),
-        uptime: process.uptime()
+        version: "1.0.0",
       });
     });
 
     // API routes
     this.app.use("/api/v1/auction", auctionRoutes);
 
-    // 404 handler
-    this.app.use("*", (request, response) => {
+    // 404 handler for all unmatched routes
+    this.app.use((request: Request, response: Response) => {
       response.status(404).json({
         success: false,
-        message: "Endpoint not found",
-        path: request.originalUrl
+        message: `Route ${request.originalUrl} not found`,
       });
     });
   }
 
   private initializeErrorHandling(): void {
     // Global error handler
-    this.app.use((error: Error, request: express.Request, response: express.Response, next: express.NextFunction) => {
-      console.error("Unhandled error:", error);
-      
+    this.app.use((error: Error, request: Request, response: Response, next: Function) => {
+      console.error("Global error handler:", error);
+
       response.status(500).json({
         success: false,
         message: "Internal server error",
-        error: process.env.NODE_ENV === "development" ? error.message : "Something went wrong"
+        error: process.env.NODE_ENV === "development" ? error.message : "Something went wrong",
       });
     });
   }
 
-  public async start(mongoConnectionString?: string): Promise<void> {
+  public async initialize(mongoConnectionString: string): Promise<void> {
     try {
-      // Connect to database
-      if (mongoConnectionString) {
-        await this.db.connect(mongoConnectionString);
-      }
+      // Initialize the auction system
+      await this.auctionSystem.initialize(mongoConnectionString);
 
-      // Start server
-      this.app.listen(this.port, () => {
-        console.log(`🚀 Car Auction Server is running on port ${this.port}`);
-        console.log(`📊 Health check: http://localhost:${this.port}/health`);
-        console.log(`🔧 API Base URL: http://localhost:${this.port}/api/v1`);
-        console.log(`📚 API Documentation available at: http://localhost:${this.port}/api/v1/auction`);
-      });
+      // Initialize controllers with the auction system
+      AuctionController.initialize(this.auctionSystem);
 
+      console.log("Car Auction System initialized successfully");
     } catch (error) {
-      console.error("Failed to start server:", error);
-      process.exit(1);
+      console.error("Failed to initialize Car Auction System:", error);
+      throw error;
     }
   }
 
-  public async stop(): Promise<void> {
+  public start(): void {
+    this.app.listen(this.port, () => {
+      console.log(`
+🚀 Car Auction API Server is running!
+📍 Port: ${this.port}
+🔗 Base URL: http://localhost:${this.port}
+📚 API Documentation: http://localhost:${this.port}/api/v1
+🏥 Health Check: http://localhost:${this.port}/health
+
+Available Endpoints:
+├── POST   /api/v1/auction/token                    - Generate authentication token
+├── POST   /api/v1/auction/createAuction            - Create a new auction
+├── PATCH  /api/v1/auction/status/{auctionId}       - Update auction status
+├── GET    /api/v1/auction/{auctionId}/winner-bid   - Get highest bid for auction
+└── POST   /api/v1/auction/placeBids                - Place a bid on auction
+
+Authentication:
+- Username: Admin
+- Password: Admin
+      `);
+    });
+  }
+
+  public async shutdown(): Promise<void> {
     try {
-      await this.db.disconnect();
-      console.log("🛑 Car Auction Server stopped");
+      await this.auctionSystem.shutdown();
+      console.log("Car Auction API Server shut down successfully");
     } catch (error) {
-      console.error("Error stopping server:", error);
+      console.error("Error during server shutdown:", error);
+      throw error;
     }
   }
 
-  public getApp(): express.Application {
+  public getApp(): Application {
     return this.app;
   }
-}
-
-// Create and export server instance
-export const createServer = (port?: number, mongoConnectionString?: string): AuctionServer => {
-  const server = new AuctionServer(port);
-  
-  // Handle graceful shutdown
-  process.on("SIGTERM", async () => {
-    console.log("SIGTERM received, shutting down gracefully");
-    await server.stop();
-    process.exit(0);
-  });
-
-  process.on("SIGINT", async () => {
-    console.log("SIGINT received, shutting down gracefully");
-    await server.stop();
-    process.exit(0);
-  });
-
-  return server;
-};
-
-// Auto-start server if this file is run directly
-if (require.main === module) {
-  const port = Number(process.env.PORT) || 3000;
-  const mongoUrl = process.env.MONGODB_URI || "mongodb://localhost:27017/car-auction-db";
-  
-  const server = createServer(port);
-  server.start(mongoUrl).catch(console.error);
 }

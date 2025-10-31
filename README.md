@@ -230,6 +230,198 @@ The system includes comprehensive error handling for:
 
 All service methods throw descriptive errors that can be caught and handled appropriately.
 
+## API Endpoints
+
+The system provides REST API endpoints for interacting with the car auction system:
+
+### Base URL
+```
+http://localhost:3000/api/v1/auction
+```
+
+### Authentication
+All API endpoints (except token generation) require Bearer token authentication.
+
+#### Generate Token
+```http
+POST /api/v1/auction/token
+Content-Type: application/json
+
+{
+  "username": "Admin",
+  "password": "Admin"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Token generated successfully",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "tokenType": "Bearer",
+    "expiresIn": "24h"
+  }
+}
+```
+
+### API Endpoints
+
+#### 1. Create Auction
+```http
+POST /api/v1/auction/createAuction
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "auctionId": "AUCTION001",
+  "carId": "CAR001",
+  "startingPrice": 15000,
+  "startTime": "2025-10-31T10:00:00.000Z",
+  "endTime": "2025-10-31T18:00:00.000Z"
+}
+```
+
+#### 2. Update Auction Status
+```http
+PATCH /api/v1/auction/status/{auctionId}
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "status": "active"
+}
+```
+
+Valid statuses: `scheduled`, `active`, `ended`, `cancelled`
+
+#### 3. Get Winner Bid
+```http
+GET /api/v1/auction/{auctionId}/winner-bid
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Winner bid retrieved successfully",
+  "data": {
+    "auctionId": "AUCTION001",
+    "auctionStatus": "active",
+    "startingPrice": 15000,
+    "currentHighestBid": 18000,
+    "winnerBid": {
+      "bidId": "BID001",
+      "bidAmount": 18000,
+      "bidTime": "2025-10-31T12:30:00.000Z",
+      "dealerId": "DEALER001"
+    }
+  }
+}
+```
+
+#### 4. Place Bid
+```http
+POST /api/v1/auction/placeBids
+Authorization: Bearer <token>
+Content-Type: application/json
+
+{
+  "bidId": "BID001",
+  "auctionId": "AUCTION001",
+  "dealerId": "DEALER001",
+  "bidAmount": 18000
+}
+```
+
+### Running the API Server
+
+1. **Start the API server:**
+   ```bash
+   npm run start:api
+   ```
+
+2. **Development mode with auto-reload:**
+   ```bash
+   npm run dev:api
+   ```
+
+3. **Check server health:**
+   ```bash
+   curl http://localhost:3000/health
+   ```
+
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+PORT=3000
+MONGO_URI=mongodb://localhost:27017/car-auction-db
+JWT_SECRET=your-secret-key-here
+NODE_ENV=development
+CORS_ORIGIN=*
+```
+
+### API Response Format
+
+All API responses follow a consistent format:
+
+**Success Response:**
+```json
+{
+  "success": true,
+  "message": "Operation successful",
+  "data": { ... }
+}
+```
+
+**Error Response:**
+```json
+{
+  "success": false,
+  "message": "Error description"
+}
+```
+
+### Example Usage with curl
+
+1. **Generate token:**
+```bash
+curl -X POST http://localhost:3000/api/v1/auction/token \
+  -H "Content-Type: application/json" \
+  -d '{"username": "Admin", "password": "Admin"}'
+```
+
+2. **Create auction:**
+```bash
+curl -X POST http://localhost:3000/api/v1/auction/createAuction \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "auctionId": "AUCTION001",
+    "carId": "CAR001", 
+    "startingPrice": 15000,
+    "startTime": "2025-10-31T10:00:00.000Z",
+    "endTime": "2025-10-31T18:00:00.000Z"
+  }'
+```
+
+3. **Place bid:**
+```bash
+curl -X POST http://localhost:3000/api/v1/auction/placeBids \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{
+    "bidId": "BID001",
+    "auctionId": "AUCTION001",
+    "dealerId": "DEALER001",
+    "bidAmount": 18000
+  }'
+```
+
 ## Contributing
 
 1. Fork the repository

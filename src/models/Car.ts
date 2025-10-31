@@ -1,4 +1,3 @@
-import { ICar } from "../types";
 import { Schema, model } from "mongoose";
 
 const CarSchema = new Schema(
@@ -32,8 +31,7 @@ const CarSchema = new Schema(
   },
 );
 
-// Create indexes for better query performance
-CarSchema.index({ carId: 1 });
+// Additional compound index for searching
 CarSchema.index({ make: 1, carModel: 1, year: 1 });
 
 export const Car = model("Car", CarSchema);

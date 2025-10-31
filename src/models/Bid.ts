@@ -1,4 +1,3 @@
-import { IBid } from "../types";
 import { Schema, model } from "mongoose";
 
 const BidSchema = new Schema(
@@ -40,14 +39,11 @@ const BidSchema = new Schema(
   },
 );
 
-// Create indexes for better query performance
-BidSchema.index({ bidId: 1 });
+// Create indexes for better query performance (bidId has unique index already)
 BidSchema.index({ auctionId: 1, bidAmount: -1 }); // Sort by bid amount descending
 BidSchema.index({ dealerId: 1 });
 BidSchema.index({ bidTime: -1 });
-BidSchema.index({ auctionId: 1, bidTime: -1 }); // Get latest bids for an auction
-
-// Virtual to populate auction details
+BidSchema.index({ auctionId: 1, bidTime: -1 }); // Get latest bids for an auction// Virtual to populate auction details
 BidSchema.virtual("auction", {
   ref: "Auction",
   localField: "auctionId",

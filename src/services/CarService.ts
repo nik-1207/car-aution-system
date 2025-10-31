@@ -9,13 +9,14 @@ export class CarService {
     }
 
     try {
-      const car = new Car({
+      // Map model to carModel for the database schema
+      const carDocument = new Car({
         carId: carData.carId,
         make: carData.make,
         carModel: carData.model,
         year: carData.year,
       });
-      const savedCar = await car.save();
+      const savedCar = await carDocument.save();
       return savedCar as ICar;
     } catch (error) {
       throw error instanceof Error

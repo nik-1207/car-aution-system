@@ -8,21 +8,38 @@
   "scripts": {
     "clean": "yarn refresh && shx rm -rf node_modules",
     "compile": "tsc",
+    "dev:api": "ts-node src/app.ts",
     "lint": "eslint --fix --cache",
     "prepare": "husky",
     "pretty": "prettier --cache --write . && sort-package-json",
     "refresh": "shx rm -rf dist coverage .eslintcache ./node_modules/.cache/prettier/.prettier-cache",
     "start": "tsc-watch --onSuccess 'node .'",
-    "test": "jest"
+    "start:api": "tsc-watch --onSuccess 'node dist/tsc/app.js'",
+    "test": "jest",
+    "test:api": "ts-node src/test-api.ts"
   },
   "dependencies": {
+    "@types/axios": "^0.9.36",
     "@types/mongoose": "^5.11.96",
-    "mongoose": "^8.19.2"
+    "axios": "^1.13.1",
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.19.2",
+    "morgan": "^1.10.1",
+    "tslib": "^2.8.1"
   },
   "devDependencies": {
     "@manufac/eslint-config": "^5.3.3",
     "@manufac/prettier-config": "^1.7.0",
+    "@types/bcrypt": "^6.0.0",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
     "@types/jest": "^30.0.0",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/morgan": "^1.9.10",
     "@types/node": "^24.9.2",
     "eslint": "^9.38.0",
     "husky": "^9.1.7",

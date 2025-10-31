@@ -1,4 +1,3 @@
-import { IDealer } from "../types";
 import { Schema, model } from "mongoose";
 
 const DealerSchema = new Schema(
@@ -29,8 +28,6 @@ const DealerSchema = new Schema(
   },
 );
 
-// Create indexes for better query performance
-DealerSchema.index({ dealerId: 1 });
-DealerSchema.index({ email: 1 });
+// Indexes are automatically created by unique: true
 
 export const Dealer = model("Dealer", DealerSchema);

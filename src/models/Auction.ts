@@ -53,8 +53,7 @@ const AuctionSchema = new Schema(
   },
 );
 
-// Create indexes for better query performance
-AuctionSchema.index({ auctionId: 1 });
+// Additional indexes for better query performance (auctionId has unique index already)
 AuctionSchema.index({ carId: 1 });
 AuctionSchema.index({ auctionStatus: 1 });
 AuctionSchema.index({ startTime: 1, endTime: 1 });

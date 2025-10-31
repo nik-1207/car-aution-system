@@ -1,17 +1,17 @@
-import { AuctionController } from "../controllers/AuctionController";
-import { authenticateToken, login } from "../middleware/auth";
 import { Router } from "express";
+import { AuctionController } from "../controllers/AuctionController";
+import { AuthController } from "../controllers/AuthController";
+import { authenticateToken } from "../middleware/auth";
 
 const router = Router();
-const auctionController = new AuctionController();
 
-// Authentication routes
-router.post("/token", login);
+// Authentication endpoint - no auth required
+router.post("/token", AuthController.generateAuthToken);
 
-// Protected auction routes
-router.post("/createAuction", authenticateToken, auctionController.createAuction);
-router.patch("/status/:auctionId", authenticateToken, auctionController.updateAuctionStatus);
-router.get("/:auctionId/winner-bid", authenticateToken, auctionController.getWinnerBid);
-router.post("/placeBids", authenticateToken, auctionController.placeBid);
+// Auction endpoints - all require authentication
+router.post("/createAuction", authenticateToken, AuctionController.createAuction);
+router.patch("/status/:auctionId", authenticateToken, AuctionController.updateAuctionStatus);
+router.get("/:auctionId/winner-bid", authenticateToken, AuctionController.getWinnerBid);
+router.post("/placeBids", authenticateToken, AuctionController.placeBid);
 
 export default router;
