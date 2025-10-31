@@ -243,12 +243,12 @@ export class AuctionService {
         const currentAuction = await Auction.findById(dealer.currentAuctionId);
         if (currentAuction && [AuctionStatus.PENDING, AuctionStatus.ACTIVE].includes(currentAuction.auctionStatus)) {
           throw createHttpError(
-            400, 
-            `Dealer is already participating in auction ${currentAuction.auctionId}. A dealer can only bid in one auction at a time.`
+            400,
+            `Dealer is already participating in auction ${currentAuction.auctionId}. A dealer can only bid in one auction at a time.`,
           );
         }
       }
-      
+
       // Update dealer's current auction
       dealer.currentAuctionId = auction._id;
       await dealer.save();
