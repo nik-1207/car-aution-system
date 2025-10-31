@@ -5,7 +5,7 @@ export interface IDealer extends Document {
   dealerId: string;
   name: string;
   email: string;
-  auctionId?: Types.ObjectId;
+  currentAuctionId?: Types.ObjectId; // Dealer can only participate in one auction at a time
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,7 +31,7 @@ const dealerSchema = new Schema<IDealer>(
       lowercase: true,
       match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, "Please enter a valid email"],
     },
-    auctionId: {
+    currentAuctionId: {
       type: Schema.Types.ObjectId,
       ref: "Auction",
       required: false,
@@ -46,6 +46,7 @@ const dealerSchema = new Schema<IDealer>(
 // Indexes
 dealerSchema.index({ dealerId: 1 });
 dealerSchema.index({ email: 1 });
+dealerSchema.index({ currentAuctionId: 1 });
 dealerSchema.index({ auctionId: 1 });
 
 export const Dealer = model<IDealer>("Dealer", dealerSchema);

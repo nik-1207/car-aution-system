@@ -233,12 +233,24 @@ export class AuctionService {
         dealerId,
         name: dealerName,
         email: dealerEmail,
-        auctionId: auction._id,
+        currentAuctionId: auction._id,
       });
       await dealer.save();
     } else {
+      // Check if dealer is already participating in a different active auction
+      if (dealer.currentAuctionId && !dealer.currentAuctionId.equals(auction._id)) {
+        // Check if their current auction is still active
+        const currentAuction = await Auction.findById(dealer.currentAuctionId);
+        if (currentAuction && [AuctionStatus.PENDING, AuctionStatus.ACTIVE].includes(currentAuction.auctionStatus)) {
+          throw createHttpError(
+            400, 
+            `Dealer is already participating in auction ${currentAuction.auctionId}. A dealer can only bid in one auction at a time.`
+          );
+        }
+      }
+      
       // Update dealer's current auction
-      dealer.auctionId = auction._id;
+      dealer.currentAuctionId = auction._id;
       await dealer.save();
     }
 

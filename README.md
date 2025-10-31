@@ -120,6 +120,7 @@ A RESTful API system for managing car auctions, built with Node.js, Express, Typ
   - Bid amount must be higher than starting price
   - Bid amount must exceed current highest bid
   - Auction must be within start and end time
+  - **Dealer can only participate in one auction at a time**
 - **Response**:
   ```json
   {
@@ -244,16 +245,16 @@ Represents a car available for auction.
 - `year`: Required, between 1900 and current year + 1
 
 ### Dealer Model
-Represents registered dealers who can place bids.
+Represents registered dealers who can place bids. **Business Rule: A dealer can only participate in one auction at a time.**
 
 **Schema**:
 ```typescript
 {
   _id: ObjectId,
-  dealerId: string,     // Unique dealer identifier
-  name: string,         // Dealer name
-  email: string,        // Dealer email (unique)
-  auctionId: ObjectId,  // Reference to current auction (optional)
+  dealerId: string,           // Unique dealer identifier
+  name: string,               // Dealer name
+  email: string,              // Dealer email (unique)
+  currentAuctionId: ObjectId, // Reference to current active auction (optional)
   createdAt: Date,
   updatedAt: Date
 }
@@ -263,7 +264,7 @@ Represents registered dealers who can place bids.
 - `dealerId`: Required, unique
 - `name`: Required, non-empty string
 - `email`: Required, unique, valid email format
-- `auctionId`: Optional reference to Auction
+- `currentAuctionId`: Optional reference to current active Auction
 
 ### Auction Model
 Represents an auction for a specific car.
@@ -327,7 +328,7 @@ Represents a bid placed by a dealer on an auction.
 
 ### One-to-Many Relationships
 - **Auction → Bid**: An auction can have many bids
-- **Dealer → Bid**: A dealer can place multiple bids
+- **Dealer → Bid**: A dealer can place multiple bids (but only in one auction at a time)
 - **Auction → Dealer**: An auction can have many participating dealers
 
 ### Foreign Key Relationships
@@ -335,7 +336,7 @@ Represents a bid placed by a dealer on an auction.
 - `bid.auctionId` → `auction._id`
 - `bid.dealerId` → `dealer._id`
 - `bid.previousBid` → `bid._id` (self-reference)
-- `dealer.auctionId` → `auction._id`
+- `dealer.currentAuctionId` → `auction._id`
 
 ## Error Responses
 
