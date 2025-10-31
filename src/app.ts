@@ -5,6 +5,7 @@ import morgan from "morgan";
 import mongoose from "mongoose";
 import { config } from "./config/config";
 import { errorHandler } from "./middleware/error";
+import AuctionRoutes from "./v1-routes/auction";
 
 class App {
   public app: express.Application;
@@ -59,11 +60,8 @@ class App {
   }
 
   private initializeRoutes(): void {
-    // API routes
-    // this.app.use("/api/auth", authRoutes);
-    // this.app.use("/api/cars", carRoutes);
-    // this.app.use("/api/auctions", auctionRoutes);
-    // this.app.use("/api/users", userRoutes);
+    // API v1 routes
+    this.app.use("/api/v1/auction", new AuctionRoutes().getRouter());
 
     // Root endpoint
     this.app.get("/", (req, res) => {
