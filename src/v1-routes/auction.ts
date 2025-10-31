@@ -2,12 +2,7 @@ import { Router, Request, Response, NextFunction } from "express";
 import { sign } from "jsonwebtoken";
 import createHttpError from "http-errors";
 import { config } from "../config/config";
-import { 
-  AuctionService, 
-  type CreateAuctionData, 
-  type UpdateAuctionStatusData,
-  type PlaceBidData 
-} from "../services";
+import { AuctionService, type CreateAuctionData, type UpdateAuctionStatusData, type PlaceBidData } from "../services";
 import { AuctionStatus } from "../models";
 
 class AuctionRoutes {
@@ -174,9 +169,7 @@ class AuctionRoutes {
 
       res.status(200).json({
         success: true,
-        message: winnerBidData.winnerBid 
-          ? "Winner bid retrieved successfully" 
-          : "No bids found for this auction",
+        message: winnerBidData.winnerBid ? "Winner bid retrieved successfully" : "No bids found for this auction",
         data: winnerBidData,
         timestamp: new Date().toISOString(),
       });
@@ -199,7 +192,7 @@ class AuctionRoutes {
         auctionId,
         bidAmount: Number(bidAmount),
         dealerName: dealerName.trim(),
-        dealerEmail: dealerEmail.trim().toLowerCase()
+        dealerEmail: dealerEmail.trim().toLowerCase(),
       };
 
       // Place bid using service
@@ -214,14 +207,14 @@ class AuctionRoutes {
           bidTime: bid.bidTime,
           auction: {
             auctionId: (bid.auctionId as any).auctionId,
-            car: (bid.auctionId as any).carId
+            car: (bid.auctionId as any).carId,
           },
           dealer: {
             dealerId: (bid.dealerId as any).dealerId,
             name: (bid.dealerId as any).name,
-            email: (bid.dealerId as any).email
+            email: (bid.dealerId as any).email,
           },
-          previousBid: bid.previousBid
+          previousBid: bid.previousBid,
         },
         timestamp: new Date().toISOString(),
       });

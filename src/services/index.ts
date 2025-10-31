@@ -1,7 +1,7 @@
-export { 
-  AuctionService, 
-  type CreateAuctionData, 
+export {
+  AuctionService,
+  type CreateAuctionData,
   type UpdateAuctionStatusData,
   type PlaceBidData,
-  type WinnerBidResponse
-} from './AuctionService';
+  type WinnerBidResponse,
+} from "./AuctionService";

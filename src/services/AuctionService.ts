@@ -187,7 +187,7 @@ export class AuctionService {
     }
 
     // Find the auction
-    const auction = await Auction.findOne({ auctionId }).populate('carId');
+    const auction = await Auction.findOne({ auctionId }).populate("carId");
     if (!auction) {
       throw createHttpError(404, "Auction not found");
     }
@@ -214,11 +214,14 @@ export class AuctionService {
     // Get current highest bid
     const currentHighestBid = await Bid.findOne({ auctionId: auction._id })
       .sort({ bidAmount: -1 })
-      .populate('dealerId');
+      .populate("dealerId");
 
     // Check if bid is higher than current highest bid
     if (currentHighestBid && bidAmount <= currentHighestBid.bidAmount) {
-      throw createHttpError(400, `Bid amount must be higher than current highest bid of ${currentHighestBid.bidAmount}`);
+      throw createHttpError(
+        400,
+        `Bid amount must be higher than current highest bid of ${currentHighestBid.bidAmount}`,
+      );
     }
 
     // Find or create dealer
@@ -230,7 +233,7 @@ export class AuctionService {
         dealerId,
         name: dealerName,
         email: dealerEmail,
-        auctionId: auction._id
+        auctionId: auction._id,
       });
       await dealer.save();
     } else {
@@ -247,13 +250,13 @@ export class AuctionService {
       auctionId: auction._id,
       dealerId: dealer._id,
       previousBid: currentHighestBid?._id,
-      bidTime: now
+      bidTime: now,
     });
 
     const savedBid = await bid.save();
 
     // Populate references
-    await savedBid.populate(['auctionId', 'dealerId']);
+    await savedBid.populate(["auctionId", "dealerId"]);
 
     return savedBid;
   }
@@ -274,9 +277,7 @@ export class AuctionService {
     }
 
     // Get highest bid for this auction
-    const highestBid = await Bid.findOne({ auctionId: auction._id })
-      .sort({ bidAmount: -1 })
-      .populate('dealerId');
+    const highestBid = await Bid.findOne({ auctionId: auction._id }).sort({ bidAmount: -1 }).populate("dealerId");
 
     let winnerBid = null;
     let dealer = null;
@@ -285,7 +286,7 @@ export class AuctionService {
       winnerBid = {
         bidId: highestBid.bidId,
         bidAmount: highestBid.bidAmount,
-        bidTime: highestBid.bidTime
+        bidTime: highestBid.bidTime,
       };
 
       if (highestBid.dealerId) {
@@ -293,7 +294,7 @@ export class AuctionService {
         dealer = {
           dealerId: dealerData.dealerId,
           name: dealerData.name,
-          email: dealerData.email
+          email: dealerData.email,
         };
       }
     }
@@ -302,7 +303,7 @@ export class AuctionService {
       auctionId: auction.auctionId,
       winnerBid,
       dealer,
-      auctionStatus: auction.auctionStatus
+      auctionStatus: auction.auctionStatus,
     };
   }
 }
