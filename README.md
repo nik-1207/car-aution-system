@@ -56,7 +56,7 @@ A comprehensive car auction system built with Node.js, TypeScript, and MongoDB u
 
 2. **Install dependencies**
    ```bash
-   npm install
+   yarn install
    ```
 
 3. **Setup MongoDB**
