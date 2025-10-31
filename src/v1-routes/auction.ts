@@ -2,12 +2,15 @@ import { Router, Request, Response, NextFunction } from "express";
 import { sign } from "jsonwebtoken";
 import createHttpError from "http-errors";
 import { config } from "../config/config";
+import { AuctionService, type CreateAuctionData } from "../services";
 
 class AuctionRoutes {
   private router: Router;
+  private auctionService: AuctionService;
 
   constructor() {
     this.router = Router();
+    this.auctionService = new AuctionService();
     this.initializeRoutes();
   }
 
@@ -76,11 +79,36 @@ class AuctionRoutes {
   // Create new auction
   private async createAuction(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // TODO: Implement create auction logic
+      const { auctionId, startingPrice, startTime, endTime, carId } = req.body;
+
+      // Validate required fields
+      if (!auctionId || !startingPrice || !startTime || !endTime || !carId) {
+        throw createHttpError(400, 'Missing required fields: auctionId, startingPrice, startTime, endTime, carId');
+      }
+
+      const auctionData: CreateAuctionData = {
+        auctionId,
+        startingPrice: Number(startingPrice),
+        startTime: new Date(startTime),
+        endTime: new Date(endTime),
+        carId
+      };
+
+      // Create auction using service
+      const auction = await this.auctionService.createAuction(auctionData);
+
       res.status(201).json({
         success: true,
-        message: "Create auction endpoint - to be implemented",
-        data: req.body,
+        message: "Auction created successfully",
+        data: {
+          auctionId: auction.auctionId,
+          startingPrice: auction.startingPrice,
+          startTime: auction.startTime,
+          endTime: auction.endTime,
+          auctionStatus: auction.auctionStatus,
+          car: auction.carId,
+          createdAt: auction.createdAt
+        },
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
