@@ -170,4 +170,139 @@ export class AuctionService {
 
     return updatedAuction;
   }
+
+  /**
+   * Place a bid on an auction
+   */
+  public async placeBid(bidData: PlaceBidData): Promise<IBid> {
+    const { auctionId, bidAmount, dealerName, dealerEmail } = bidData;
+
+    // Validate input data
+    if (!auctionId || !bidAmount || !dealerName || !dealerEmail) {
+      throw createHttpError(400, "All bid fields are required: auctionId, bidAmount, dealerName, dealerEmail");
+    }
+
+    if (bidAmount <= 0) {
+      throw createHttpError(400, "Bid amount must be greater than 0");
+    }
+
+    // Find the auction
+    const auction = await Auction.findOne({ auctionId }).populate('carId');
+    if (!auction) {
+      throw createHttpError(404, "Auction not found");
+    }
+
+    // Check auction status
+    if (auction.auctionStatus !== AuctionStatus.ACTIVE) {
+      throw createHttpError(400, "Can only place bids on active auctions");
+    }
+
+    // Check auction time
+    const now = new Date();
+    if (now < auction.startTime) {
+      throw createHttpError(400, "Auction has not started yet");
+    }
+    if (now > auction.endTime) {
+      throw createHttpError(400, "Auction has ended");
+    }
+
+    // Check if bid amount is higher than starting price
+    if (bidAmount < auction.startingPrice) {
+      throw createHttpError(400, `Bid amount must be at least ${auction.startingPrice}`);
+    }
+
+    // Get current highest bid
+    const currentHighestBid = await Bid.findOne({ auctionId: auction._id })
+      .sort({ bidAmount: -1 })
+      .populate('dealerId');
+
+    // Check if bid is higher than current highest bid
+    if (currentHighestBid && bidAmount <= currentHighestBid.bidAmount) {
+      throw createHttpError(400, `Bid amount must be higher than current highest bid of ${currentHighestBid.bidAmount}`);
+    }
+
+    // Find or create dealer
+    let dealer = await Dealer.findOne({ email: dealerEmail });
+    if (!dealer) {
+      // Create new dealer
+      const dealerId = `DEALER_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      dealer = new Dealer({
+        dealerId,
+        name: dealerName,
+        email: dealerEmail,
+        auctionId: auction._id
+      });
+      await dealer.save();
+    } else {
+      // Update dealer's current auction
+      dealer.auctionId = auction._id;
+      await dealer.save();
+    }
+
+    // Create new bid
+    const bidId = `BID_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const bid = new Bid({
+      bidId,
+      bidAmount,
+      auctionId: auction._id,
+      dealerId: dealer._id,
+      previousBid: currentHighestBid?._id,
+      bidTime: now
+    });
+
+    const savedBid = await bid.save();
+
+    // Populate references
+    await savedBid.populate(['auctionId', 'dealerId']);
+
+    return savedBid;
+  }
+
+  /**
+   * Get winner bid for an auction
+   */
+  public async getWinnerBid(auctionId: string): Promise<WinnerBidResponse> {
+    // Validate input
+    if (!auctionId) {
+      throw createHttpError(400, "Auction ID is required");
+    }
+
+    // Find the auction
+    const auction = await Auction.findOne({ auctionId });
+    if (!auction) {
+      throw createHttpError(404, "Auction not found");
+    }
+
+    // Get highest bid for this auction
+    const highestBid = await Bid.findOne({ auctionId: auction._id })
+      .sort({ bidAmount: -1 })
+      .populate('dealerId');
+
+    let winnerBid = null;
+    let dealer = null;
+
+    if (highestBid) {
+      winnerBid = {
+        bidId: highestBid.bidId,
+        bidAmount: highestBid.bidAmount,
+        bidTime: highestBid.bidTime
+      };
+
+      if (highestBid.dealerId) {
+        const dealerData = highestBid.dealerId as any;
+        dealer = {
+          dealerId: dealerData.dealerId,
+          name: dealerData.name,
+          email: dealerData.email
+        };
+      }
+    }
+
+    return {
+      auctionId: auction.auctionId,
+      winnerBid,
+      dealer,
+      auctionStatus: auction.auctionStatus
+    };
+  }
 }

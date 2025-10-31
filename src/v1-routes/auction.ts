@@ -2,7 +2,12 @@ import { Router, Request, Response, NextFunction } from "express";
 import { sign } from "jsonwebtoken";
 import createHttpError from "http-errors";
 import { config } from "../config/config";
-import { AuctionService, type CreateAuctionData, type UpdateAuctionStatusData } from "../services";
+import { 
+  AuctionService, 
+  type CreateAuctionData, 
+  type UpdateAuctionStatusData,
+  type PlaceBidData 
+} from "../services";
 import { AuctionStatus } from "../models";
 
 class AuctionRoutes {
@@ -159,15 +164,20 @@ class AuctionRoutes {
     try {
       const { auctionId } = req.params;
 
-      // TODO: Implement get winner bid logic
+      // Validate required fields
+      if (!auctionId) {
+        throw createHttpError(400, "Auction ID is required");
+      }
+
+      // Get winner bid using service
+      const winnerBidData = await this.auctionService.getWinnerBid(auctionId);
+
       res.status(200).json({
         success: true,
-        message: "Get winner bid endpoint - to be implemented",
-        data: {
-          auctionId,
-          winnerBid: null,
-          dealer: null,
-        },
+        message: winnerBidData.winnerBid 
+          ? "Winner bid retrieved successfully" 
+          : "No bids found for this auction",
+        data: winnerBidData,
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
@@ -178,11 +188,41 @@ class AuctionRoutes {
   // Place bid
   private async placeBid(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // TODO: Implement place bid logic
-      res.status(200).json({
+      const { auctionId, bidAmount, dealerName, dealerEmail } = req.body;
+
+      // Validate required fields
+      if (!auctionId || !bidAmount || !dealerName || !dealerEmail) {
+        throw createHttpError(400, "Missing required fields: auctionId, bidAmount, dealerName, dealerEmail");
+      }
+
+      const bidData: PlaceBidData = {
+        auctionId,
+        bidAmount: Number(bidAmount),
+        dealerName: dealerName.trim(),
+        dealerEmail: dealerEmail.trim().toLowerCase()
+      };
+
+      // Place bid using service
+      const bid = await this.auctionService.placeBid(bidData);
+
+      res.status(201).json({
         success: true,
-        message: "Place bid endpoint - to be implemented",
-        data: req.body,
+        message: "Bid placed successfully",
+        data: {
+          bidId: bid.bidId,
+          bidAmount: bid.bidAmount,
+          bidTime: bid.bidTime,
+          auction: {
+            auctionId: (bid.auctionId as any).auctionId,
+            car: (bid.auctionId as any).carId
+          },
+          dealer: {
+            dealerId: (bid.dealerId as any).dealerId,
+            name: (bid.dealerId as any).name,
+            email: (bid.dealerId as any).email
+          },
+          previousBid: bid.previousBid
+        },
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
