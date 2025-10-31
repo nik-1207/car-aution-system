@@ -1,7 +1,7 @@
-import { Router, Request, Response, NextFunction } from 'express';
-import {sign} from 'jsonwebtoken';
-import createHttpError from 'http-errors';
-import { config } from '../config/config';
+import { Router, Request, Response, NextFunction } from "express";
+import { sign } from "jsonwebtoken";
+import createHttpError from "http-errors";
+import { config } from "../config/config";
 
 class AuctionRoutes {
   private router: Router;
@@ -13,19 +13,19 @@ class AuctionRoutes {
 
   private initializeRoutes(): void {
     // POST /api/v1/auction/token - Generate authentication token
-    this.router.post('/token', this.generateToken.bind(this));
-    
+    this.router.post("/token", this.generateToken.bind(this));
+
     // POST /api/v1/auction/createAuction - Create new auction
-    this.router.post('/createAuction', this.createAuction.bind(this));
-    
+    this.router.post("/createAuction", this.createAuction.bind(this));
+
     // PATCH /api/v1/auction/status/:auctionId - Update auction status
-    this.router.patch('/status/:auctionId', this.updateAuctionStatus.bind(this));
-    
+    this.router.patch("/status/:auctionId", this.updateAuctionStatus.bind(this));
+
     // GET /api/v1/auction/:auctionId/winner-bid - Get winner bid
-    this.router.get('/:auctionId/winner-bid', this.getWinnerBid.bind(this));
-    
+    this.router.get("/:auctionId/winner-bid", this.getWinnerBid.bind(this));
+
     // POST /api/v1/auction/placeBids - Place bid
-    this.router.post('/placeBids', this.placeBid.bind(this));
+    this.router.post("/placeBids", this.placeBid.bind(this));
   }
 
   // Generate authentication token
@@ -35,20 +35,20 @@ class AuctionRoutes {
 
       // Validate required fields
       if (!username || !password) {
-        throw createHttpError(400, 'Username and password are required');
+        throw createHttpError(400, "Username and password are required");
       }
 
       // Check static credentials
       if (username !== config.adminUsername || password !== config.adminPassword) {
-        throw createHttpError(401, 'Invalid username or password');
+        throw createHttpError(401, "Invalid username or password");
       }
 
       // Generate JWT token
       const payload = {
         username: config.adminUsername,
-        role: 'admin',
+        role: "admin",
         iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + (60 * 60),
+        exp: Math.floor(Date.now() / 1000) + 60 * 60,
       };
 
       const token = sign(payload, config.jwtSecret);
@@ -56,17 +56,17 @@ class AuctionRoutes {
       // Send successful response
       res.status(200).json({
         success: true,
-        message: 'Token generated successfully',
+        message: "Token generated successfully",
         data: {
           token,
-          tokenType: 'Bearer',
+          tokenType: "Bearer",
           expiresIn: config.jwtExpiresIn,
           user: {
             username: config.adminUsername,
-            role: 'admin'
-          }
+            role: "admin",
+          },
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       next(error);
@@ -79,9 +79,9 @@ class AuctionRoutes {
       // TODO: Implement create auction logic
       res.status(201).json({
         success: true,
-        message: 'Create auction endpoint - to be implemented',
+        message: "Create auction endpoint - to be implemented",
         data: req.body,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       next(error);
@@ -92,16 +92,16 @@ class AuctionRoutes {
   private async updateAuctionStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { auctionId } = req.params;
-      
+
       // TODO: Implement auction status update logic
       res.status(200).json({
         success: true,
-        message: 'Update auction status endpoint - to be implemented',
-        data: { 
+        message: "Update auction status endpoint - to be implemented",
+        data: {
           auctionId,
-          ...req.body 
+          ...req.body,
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       next(error);
@@ -112,17 +112,17 @@ class AuctionRoutes {
   private async getWinnerBid(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { auctionId } = req.params;
-      
+
       // TODO: Implement get winner bid logic
       res.status(200).json({
         success: true,
-        message: 'Get winner bid endpoint - to be implemented',
-        data: { 
+        message: "Get winner bid endpoint - to be implemented",
+        data: {
           auctionId,
           winnerBid: null,
-          dealer: null
+          dealer: null,
         },
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       next(error);
@@ -135,9 +135,9 @@ class AuctionRoutes {
       // TODO: Implement place bid logic
       res.status(200).json({
         success: true,
-        message: 'Place bid endpoint - to be implemented',
+        message: "Place bid endpoint - to be implemented",
         data: req.body,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     } catch (error) {
       next(error);
