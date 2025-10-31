@@ -83,7 +83,7 @@ class AuctionRoutes {
 
       // Validate required fields
       if (!auctionId || !startingPrice || !startTime || !endTime || !carId) {
-        throw createHttpError(400, 'Missing required fields: auctionId, startingPrice, startTime, endTime, carId');
+        throw createHttpError(400, "Missing required fields: auctionId, startingPrice, startTime, endTime, carId");
       }
 
       const auctionData: CreateAuctionData = {
@@ -91,7 +91,7 @@ class AuctionRoutes {
         startingPrice: Number(startingPrice),
         startTime: new Date(startTime),
         endTime: new Date(endTime),
-        carId
+        carId,
       };
 
       // Create auction using service
@@ -107,7 +107,7 @@ class AuctionRoutes {
           endTime: auction.endTime,
           auctionStatus: auction.auctionStatus,
           car: auction.carId,
-          createdAt: auction.createdAt
+          createdAt: auction.createdAt,
         },
         timestamp: new Date().toISOString(),
       });
