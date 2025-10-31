@@ -2,7 +2,8 @@ import { Router, Request, Response, NextFunction } from "express";
 import { sign } from "jsonwebtoken";
 import createHttpError from "http-errors";
 import { config } from "../config/config";
-import { AuctionService, type CreateAuctionData } from "../services";
+import { AuctionService, type CreateAuctionData, type UpdateAuctionStatusData } from "../services";
+import { AuctionStatus } from "../models";
 
 class AuctionRoutes {
   private router: Router;
@@ -120,14 +121,31 @@ class AuctionRoutes {
   private async updateAuctionStatus(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { auctionId } = req.params;
+      const { status } = req.body;
 
-      // TODO: Implement auction status update logic
+      // Validate required fields
+      if (!status) {
+        throw createHttpError(400, "Status is required in request body");
+      }
+
+      const updateData: UpdateAuctionStatusData = {
+        status: status as AuctionStatus
+      };
+
+      // Update auction status using service
+      const updatedAuction = await this.auctionService.updateAuctionStatus(auctionId, updateData);
+
       res.status(200).json({
         success: true,
-        message: "Update auction status endpoint - to be implemented",
+        message: "Auction status updated successfully",
         data: {
-          auctionId,
-          ...req.body,
+          auctionId: updatedAuction.auctionId,
+          previousStatus: req.body.previousStatus, // This would come from frontend for tracking
+          currentStatus: updatedAuction.auctionStatus,
+          startTime: updatedAuction.startTime,
+          endTime: updatedAuction.endTime,
+          car: updatedAuction.carId,
+          updatedAt: updatedAuction.updatedAt
         },
         timestamp: new Date().toISOString(),
       });

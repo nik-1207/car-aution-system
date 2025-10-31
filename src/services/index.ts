@@ -1,1 +1,1 @@
-export { AuctionService, type CreateAuctionData } from "./AuctionService";
+export { AuctionService, type CreateAuctionData, type UpdateAuctionStatusData } from './AuctionService';
