@@ -11,7 +11,8 @@
     "prepare": "husky",
     "pretty": "prettier --cache --write . && sort-package-json",
     "refresh": "shx rm -rf dist coverage .eslintcache ./node_modules/.cache/prettier/.prettier-cache",
-    "serve": "tsc && dotenvx run -- node dist/tsc/server.js"
+    "serve": "tsc && dotenvx run -- node dist/tsc/server.js",
+    "test:flow": "dotenvx run -- node test-auction-flow.js"
   },
   "dependencies": {
     "@dotenvx/dotenvx": "^1.51.0",

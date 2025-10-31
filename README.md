@@ -364,3 +364,191 @@ All endpoints return standardized error responses:
 - `404`: Not Found (resource doesn't exist)
 - `409`: Conflict (duplicate resources, invalid state transitions)
 - `500`: Internal Server Error
+
+## Testing
+
+### Automated Test Scripts
+
+This project includes comprehensive test scripts that cover the complete auction flow.
+
+#### Test Scripts Available
+
+
+##### 1. `test-auction-flow.js` (JavaScript)  
+A JavaScript version of the same test flow for environments without TypeScript.
+
+**Run with:**
+```bash
+npm run test:flow:js
+# or
+yarn test:flow:js
+```
+
+#### Test Flow Overview
+
+The test script performs the following steps:
+
+##### 1. 📋 Database Setup
+- Adds 3 test cars directly to the database:
+  - Toyota Camry 2023
+  - Honda Civic 2022  
+  - BMW X5 2024
+- Adds 3 test dealers to the database
+
+##### 2. 🔐 Admin Authentication
+- Logs in as admin using credentials:
+  - Username: `Admin`
+  - Password: `Admin`
+- Retrieves admin authentication token
+
+##### 3. 🏁 Auction Creation
+- Admin creates a new auction
+- Sets starting price at $15,000
+- Associates the first car (Toyota Camry) with the auction
+- Sets auction duration for 30 minutes
+
+##### 4. 🎫 Token Generation
+- Generates authentication tokens for 3 different dealers:
+  - John Dealer (john@dealership.com)
+  - Sarah Motors (sarah@motors.com)
+  - Mike Auto (mike@auto.com)
+- Falls back to admin token if dealer authentication fails
+
+##### 5. 💰 Bidding Process
+- Each dealer places 3 rounds of bids
+- Bids start at $15,500 and increase by $1,000 each time
+- Ensures each subsequent bid is higher than the previous
+- Total of 9 bids placed across all dealers
+
+##### 6. 🔒 Auction Closure
+- Admin closes the auction
+- Changes auction status from 'active' to 'closed'
+
+##### 7. 🏆 Winner Determination
+- Fetches the auction winner information
+- Displays winner details including:
+  - Winner name and email
+  - Winning bid amount
+  - Bid timestamp
+  - Bid ID
+
+#### Prerequisites
+
+##### 1. Server Running
+Make sure your server is running before executing the test:
+```bash
+npm run dev
+# or
+yarn dev
+```
+
+##### 2. MongoDB Connection
+Ensure MongoDB is running and accessible at:
+- Default: `mongodb://localhost:27017/car-auction-system`
+- Or set `MONGODB_URI` in your environment
+
+##### 3. Environment Variables
+Make sure your `.env` file contains:
+```bash
+MONGODB_URI=mongodb://localhost:27017/car-auction-system
+JWT_SECRET=your-secret-key
+PORT=3000
+```
+
+#### Test Results
+
+The script provides detailed console output showing:
+- ✅ Successful operations
+- ❌ Failed operations  
+- ⚠️ Warnings and fallbacks
+- 📊 Final test summary
+
+##### Sample Output
+```
+🚀 Starting Car Auction System Test Flow
+=========================================
+
+📋 Step 1: Adding cars directly to database...
+✅ Added car: Toyota Camry (2023)
+✅ Added car: Honda Civic (2022)
+✅ Added car: BMW X5 (2024)
+✅ Successfully added 3 cars to database
+
+🔐 Step 2: Admin login...
+✅ Admin login successful
+📝 Admin token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+... (continued output)
+
+🏆 Step 7: Fetching auction winner...
+✅ Winner information retrieved:
+🏆 Auction ID: AUCTION_1730332800000
+📊 Auction Status: closed
+🥇 Winner: Mike Auto (mike@auto.com)
+💰 Winning Bid: $23500
+⏰ Bid Time: 10/31/2025, 2:15:30 PM
+🆔 Bid ID: 6543210fedcba9876543210f
+
+📊 TEST SUMMARY
+================
+Cars Added: 3
+Dealers Added: 3
+Admin Login: ✅
+Auction Created: ✅
+Tokens Generated: 3
+Bids Placed: 9
+Auction Closed: ✅
+Winner Found: ✅
+
+Overall Success: 8/8 steps completed
+```
+
+#### Troubleshooting
+
+##### Common Issues
+
+1. **Connection Refused**
+   - Make sure the server is running on port 3000
+   - Check if MongoDB is running
+
+2. **Authentication Errors**
+   - Verify admin credentials in the test script
+   - Check JWT_SECRET in environment variables
+
+3. **Database Errors**
+   - Ensure MongoDB connection string is correct
+   - Check database permissions
+
+4. **Bid Conflicts**
+   - The script handles "one dealer per auction" business rule
+   - Multiple bids from same dealer are allowed in same auction
+
+### Manual Testing
+
+You can also test individual endpoints manually using tools like Postman or curl:
+
+```bash
+# Get admin token
+curl -X POST http://localhost:3000/api/v1/auction/token \
+  -H "Content-Type: application/json" \
+  -d '{"username":"Admin","password":"Admin"}'
+
+# Create auction (with token)
+curl -X POST http://localhost:3000/api/v1/auction/createAuction \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -d '{
+    "auctionId": "TEST_AUCTION",
+    "startingPrice": 15000,
+    "startTime": "2025-10-31T10:00:00Z",
+    "endTime": "2025-10-31T11:00:00Z", 
+    "carId": "CAR001"
+  }'
+```
+
+#### Testing Notes
+
+- The test script automatically cleans up test data before and after running
+- All test data uses prefixed IDs (CAR001, DEALER001, etc.) to avoid conflicts
+- The script includes proper error handling and graceful cleanup
+- Test execution typically takes 30-60 seconds depending on network latency
