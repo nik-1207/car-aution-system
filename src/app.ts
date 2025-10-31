@@ -4,6 +4,7 @@ import helmet from "helmet";
 import morgan from "morgan";
 import mongoose from "mongoose";
 import { config } from "./config/config";
+import { errorHandler } from "./middleware/error";
 
 class App {
   public app: express.Application;
@@ -82,11 +83,8 @@ class App {
   }
 
   private initializeErrorHandling(): void {
-    // 404 handler
-    // this.app.use(notFound);
-
-    // // Global error handler
-    // this.app.use(errorHandler);
+    // Global error handler
+    this.app.use(errorHandler);
   }
 
   public listen(): void {
