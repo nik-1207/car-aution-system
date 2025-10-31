@@ -129,7 +129,7 @@ class AuctionRoutes {
       }
 
       const updateData: UpdateAuctionStatusData = {
-        status: status as AuctionStatus
+        status: status as AuctionStatus,
       };
 
       // Update auction status using service
@@ -145,7 +145,7 @@ class AuctionRoutes {
           startTime: updatedAuction.startTime,
           endTime: updatedAuction.endTime,
           car: updatedAuction.carId,
-          updatedAt: updatedAuction.updatedAt
+          updatedAt: updatedAuction.updatedAt,
         },
         timestamp: new Date().toISOString(),
       });

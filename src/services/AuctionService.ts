@@ -117,7 +117,7 @@ export class AuctionService {
 
     // Validate status is a valid enum value
     if (!Object.values(AuctionStatus).includes(status)) {
-      throw createHttpError(400, `Invalid status. Must be one of: ${Object.values(AuctionStatus).join(', ')}`);
+      throw createHttpError(400, `Invalid status. Must be one of: ${Object.values(AuctionStatus).join(", ")}`);
     }
 
     // Find the auction
@@ -128,13 +128,13 @@ export class AuctionService {
 
     // Validate status transitions
     const currentStatus = auction.auctionStatus;
-    
+
     // Define allowed status transitions
     const allowedTransitions: { [key in AuctionStatus]: AuctionStatus[] } = {
       [AuctionStatus.PENDING]: [AuctionStatus.ACTIVE, AuctionStatus.CANCELLED],
       [AuctionStatus.ACTIVE]: [AuctionStatus.COMPLETED, AuctionStatus.CANCELLED],
       [AuctionStatus.COMPLETED]: [], // Cannot change from completed
-      [AuctionStatus.CANCELLED]: [] // Cannot change from cancelled
+      [AuctionStatus.CANCELLED]: [], // Cannot change from cancelled
     };
 
     if (!allowedTransitions[currentStatus].includes(status)) {
